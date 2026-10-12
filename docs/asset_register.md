@@ -24,7 +24,7 @@ Security requirements: Confidentiality, Integrity, Availability.
 
 Asset: User roles and permissions.
 
-Description: The Application API contains information about each user's assigned roles. The application uses this information to determine which operations a user is allowed to perform.
+Description: The Authentication Storage contains information about each user's assigned role. The Application API uses this information to determine which operations a user is allowed to perform.
 
 Owner: Application API.
 
@@ -41,6 +41,36 @@ Description: The Scheduling Service uses predefined booking rules such as availa
 Owner: Scheduling Service.
 
 Security requirements: Integrity.
+
+
+
+Asset: Audit Logs.
+
+Description: Records of important actions performed by users and administrators.
+
+Owner: Reservation Service.
+
+Security requirements: Confidentiality, Integrity, Availability.
+
+
+
+Asset: Authentication Tokens/Sessions.
+
+Description: Information used to identify authenticated users across requests.
+
+Owner: Application API, Authentication subsystem.
+
+Security requirements: Confidentiality, Integrity.
+
+
+
+Asset: Application and Service Availability.
+
+Description: The ability of our three components to process legitimate requests.
+
+Owner: Application API, Reservation Service, Scheduling Service.
+
+Security requirements: Availability.
 
 
 
