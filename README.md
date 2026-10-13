@@ -60,10 +60,21 @@ To verify that the components are running, open the following URLs:
 
 Each endpoint should return {"status": "ok"}.
 
+Testing 
+The project uses pytest for automated testing.
+Tu run the test, execute the following command from the project root:
+.\.venv\Scripts\python.exe -m pytest tests/ -v
+
+The current tests cover scheduling validation, working hours, date and time validation, the helper package and the Scheduling Service API.
+
 Current Progress
 
 The project is currently under development.
 
 The three independent FastAPI components have been created and tested using their health check endpoints
 
-Authentication, database operations, scheduling validation, reservation functionalities and automated security testing will be implemented in the next development stages.
+The Scheduling Service now validates booking dates and times according to the predefined rules. It also uses a separately installable  helper package to calculate reservation ending times.
+
+The Scheduling Service provides a POST /validate endpoint and has automated tests using pytest.
+
+Authentication, database operations, reservation management, communication between components and the remain security requirements will be implemented in the next development stages.
