@@ -5,3 +5,5 @@ uvicorn==0.54.0
 pytest==9.1.1
 httpx==0.28.1
 -e ./packages/scheduling_helper
+pwdlib[argon2]==0.3.1
+PyJWT==2.15.1

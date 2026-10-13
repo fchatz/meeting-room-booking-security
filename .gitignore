@@ -21,3 +21,6 @@ dist/
 # IDE files
 .vscode/
 .idea/
+
+# DB files
+/application_api/auth.db

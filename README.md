@@ -21,9 +21,11 @@ More information about the system design and security decisions can be found in 
 Technologies
 	Python 3.14.7
 	FastAPI
-	SQLite (planned)
+	SQLite
 	HTTP/JSON
-	Pytest (planned)
+	Pytest
+	PyJWT
+	pwlib (Argon 2 password hashing)
 	Jenkins (planned)
 
 Installation
@@ -39,8 +41,22 @@ Install the project dependencies:
 
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+Initialize the Authentication Storage:
+
+.\.venv\Scripts\python.exe application_api\init_auth_db.py
+
+This creates the SQLite database with three predefined user accounts:
+Alice and Bob as normal users and Admin as an administrator.
+Password are stored as Argon2 hashes.
+
 
 Running the application
+
+Before starting the Application API, configure the JWT signing key in Terminal 1:
+
+$env:JWT_SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+This key is generated randomly and stored as an environment variable for the current terminal session.
 
 The three components run as separate processes. Open three terminals in the project root directory and execute the following commands.
 	Application API - Terminal 1
@@ -62,10 +78,11 @@ Each endpoint should return {"status": "ok"}.
 
 Testing 
 The project uses pytest for automated testing.
-Tu run the test, execute the following command from the project root:
+To run the test, execute the following command from the project root:
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 
-The current tests cover scheduling validation, working hours, date and time validation, the helper package and the Scheduling Service API.
+The current tests cover scheduling validation, working hours, date and time validation, the helper package, the Scheduling Service API and user authentication.
+authentication tests verify successful login, incorect passwords and unknown users.
 
 Current Progress
 
@@ -77,4 +94,6 @@ The Scheduling Service now validates booking dates and times according to the pr
 
 The Scheduling Service provides a POST /validate endpoint and has automated tests using pytest.
 
-Authentication, database operations, reservation management, communication between components and the remain security requirements will be implemented in the next development stages.
+The Application API now supports user authentication using SQLite.
+The Authentication Storage contains three predefined accounts with Argon2 hashed passwords. Users can log in through the POST /login endpoint and receive a signed JWT with their user ID, role and expiration time.
+Reservation management, communication between components and the remaining security requirements will be implemented in the next development stages.
