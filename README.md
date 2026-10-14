@@ -25,7 +25,7 @@ Technologies
 	HTTP/JSON
 	Pytest
 	PyJWT
-	pwlib (Argon 2 password hashing)
+	pwdlib (Argon 2 password hashing)
 	Jenkins (planned)
 
 Installation
@@ -49,6 +49,11 @@ This creates the SQLite database with three predefined user accounts:
 Alice and Bob as normal users and Admin as an administrator.
 Password are stored as Argon2 hashes.
 
+Initialize the Reservation Database:
+
+.\.venv\Scripts\python.exe reservation_service\init_reservation_db.py
+
+This creates the reservations table and a unique index to prevent duplicate active bookings for the same room, date and starting time.
 
 Running the application
 
@@ -56,13 +61,20 @@ Before starting the Application API, configure the JWT signing key in Terminal 1
 
 $env:JWT_SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(32))"
 
-This key is generated randomly and stored as an environment variable for the current terminal session.
+This command generates a random JWT secret key and stores it as an environment variable in Terminal 1. To diplay the generated key so it can be copied to Terminal 2, run:
+
+$env:JWT_SECRET_KEY
+
+The same secret key must be used by both the Application API and the Reservation Service.
 
 The three components run as separate processes. Open three terminals in the project root directory and execute the following commands.
 	Application API - Terminal 1
 	.\.venv\Scripts\python.exe -m uvicorn application_api.main:app --reload --host 127.0.0.1 --port 8000
 	
 	Reservation Service - Terminal 2
+	Before starting the Reservation Service, set the JWT_SECRET_KEY environment variable using the same key generated in Terminal 1:
+	$env:JWT_SECRET_KEY = "<paste the key from Terminal 1>"
+	The Reservation service uses this key to verify JWT tokens issued by the Application API. Do not generate a new key in Terminal 2. Then run this command to start Reservation Service:
 	.\.venv\Scripts\python.exe -m uvicorn reservation_service.main:app --reload --host 127.0.0.1 --port 8001
 	
 	Scheduling Service - Terminal 3
@@ -84,6 +96,8 @@ To run the test, execute the following command from the project root:
 The current tests cover scheduling validation, working hours, date and time validation, the helper package, the Scheduling Service API and user authentication.
 authentication tests verify successful login, incorect passwords and unknown users.
 
+The Reservation Service tests verify successful reservation creation, prevention of duplicates and overlapping bookings, rejection of missing or invalid JWTs, invalid schedules and Scheduling Service unavailability.
+
 Current Progress
 
 The project is currently under development.
@@ -96,4 +110,6 @@ The Scheduling Service provides a POST /validate endpoint and has automated test
 
 The Application API now supports user authentication using SQLite.
 The Authentication Storage contains three predefined accounts with Argon2 hashed passwords. Users can log in through the POST /login endpoint and receive a signed JWT with their user ID, role and expiration time.
-Reservation management, communication between components and the remaining security requirements will be implemented in the next development stages.
+The Reservation Service now supports creating reservations through POST /reservations. Booking requests require JWT authentication and are validated by the Scheduling Service. The Reservation Service also checks for overlapping reservations and prevents double booking using database transactions.
+Automated tests have been added to verify reservation creation, authentication checks and scheduling failures.
+Reservation retrieval, cancellation, rescheduling, coordination through the Application API and the remaining security requirements will be implemented in the next development stages.
