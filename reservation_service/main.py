@@ -117,3 +117,22 @@ def check_schedule(date, start_time):
     if not isinstance(data, dict):
         return False
     return data.get("valid") is True
+
+@app.get("/reservations/{reservation_id}")
+def read_reservation(reservation_id: int, current_user = Depends(get_current_user)):
+    reservation = get_reservation(reservation_id)
+    if reservation is None:
+        raise HTTPException(status_code=404, detail="Reservation not found")
+    user_id = int(current_user["sub"])
+    role = current_user["role"]
+    if user_id == reservation[1] or role == "admin":
+        return {
+            "id": reservation[0],
+            "user_id": reservation[1],
+            "room_id": reservation[2],
+            "date": reservation[3],
+            "start_time": reservation[4],
+            "status": reservation[5],
+        }
+    else:
+        raise HTTPException(status_code=403, detail="Access Denied")

@@ -98,6 +98,8 @@ authentication tests verify successful login, incorect passwords and unknown use
 
 The Reservation Service tests verify successful reservation creation, prevention of duplicates and overlapping bookings, rejection of missing or invalid JWTs, invalid schedules and Scheduling Service unavailability.
 
+The reservation retrieval tests verify that users can access their own reservations, cannot access other users reservations and that administrators can access any reservation. They also verify the 401 and 404 responses. Currently all 18 automated tests pass.
+
 Current Progress
 
 The project is currently under development.
@@ -111,5 +113,6 @@ The Scheduling Service provides a POST /validate endpoint and has automated test
 The Application API now supports user authentication using SQLite.
 The Authentication Storage contains three predefined accounts with Argon2 hashed passwords. Users can log in through the POST /login endpoint and receive a signed JWT with their user ID, role and expiration time.
 The Reservation Service now supports creating reservations through POST /reservations. Booking requests require JWT authentication and are validated by the Scheduling Service. The Reservation Service also checks for overlapping reservations and prevents double booking using database transactions.
-Automated tests have been added to verify reservation creation, authentication checks and scheduling failures.
-Reservation retrieval, cancellation, rescheduling, coordination through the Application API and the remaining security requirements will be implemented in the next development stages.
+The Reservation Service also supports retrieval reservations through GET /reservations/. Authenticated users can retrieve their own reservations, while administrators can retrieve any reservation. The service enforces ownershop checks and returns appropiate HTTP status codes.
+Automated tests have been added to verify reservation creation, authentication checks, scheduling failures and reservations retrieval.
+Reservation cancellation, rescheduling, coordination through the Application API and the remaining security requirements will be implemented in the next development stages.
