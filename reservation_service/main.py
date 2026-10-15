@@ -136,3 +136,39 @@ def read_reservation(reservation_id: int, current_user = Depends(get_current_use
         }
     else:
         raise HTTPException(status_code=403, detail="Access Denied")
+
+def cancel_reservation(reservation_id):
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    try:
+        cur.execute(
+            "UPDATE reservations SET status = 'cancelled' WHERE id = ? AND status = 'active'",
+            (reservation_id,)
+        )
+        changes = cur.rowcount
+        con.commit()
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
+    if changes > 0:
+        return True
+    return False
+
+@app.delete("/reservations/{reservation_id}")
+def delete_reservation(reservation_id: int, current_user = Depends(get_current_user)):
+    reservation = get_reservation(reservation_id)
+    if reservation is None:
+        raise HTTPException(status_code=404, detail="Reservation not found")
+    user_id = int(current_user["sub"])
+    role = current_user["role"]
+    if user_id == reservation[1] or role == "admin":
+        if reservation[5] != "active":
+            raise HTTPException(status_code=409, detail="Reservation already cancelled")
+        cancel = cancel_reservation(reservation_id)
+        if cancel is False:
+            raise HTTPException(status_code=409, detail="Reservation already cancelled")
+        return {"message": "Reservation cancelled successfully"}
+    else:
+        raise HTTPException(status_code=403, detail="Access Denied")
