@@ -103,6 +103,9 @@ The reservation retrieval tests verify that users can access their own reservati
 The reservation cancellation tests verify that users can cancel their own reservations, unauthorized users cannot canacel other users reservations and administrators also canacel any reservation.
 They also verify that cancelled reservations are marked as cancelled in the database, repeated cancellation attemps are rejected and invalid requests return HTTP errors. Currently all 20 automated tests pass.
 
+The reservation rescheduling tests verify successful rescheduling, ownership restrictions, administrator permissions, prevention of overlapping bookins and rejection of changes to cancelled reservations.
+They also verify invalid schedules, nonexistent reservations and JWT authentication. Currently all 22 automated tests pass.
+
 Current Progress
 
 The project is currently under development.
@@ -118,5 +121,6 @@ The Authentication Storage contains three predefined accounts with Argon2 hashed
 The Reservation Service now supports creating reservations through POST /reservations. Booking requests require JWT authentication and are validated by the Scheduling Service. The Reservation Service also checks for overlapping reservations and prevents double booking using database transactions.
 The Reservation Service also supports retrieval reservations through GET /reservations/. Authenticated users can retrieve their own reservations, while administrators can retrieve any reservation. The service enforces ownershop checks and returns appropiate HTTP status codes.
 The Reservation Service now supports cancelling reservations through DELETE /reservations/. Authenticated users can cancel their own reservations, while administrators can cancel reservations belonging to other users. Cancelled reservations are not deleted from the database, instead their status change from active to cancelled.
-Automated tests have been added to verify reservation creation, authentication checks, scheduling failures and reservations retrieval.
-Reservation rescheduling, coordination through the Application API and the remaining security requirements will be implemented in the next development stages.
+The Reservation Service now supports rescheduling through PUT /reservations/. Users can reschedule their own reservations, while administrators can reschedule reservations belonging to other users. The Scheduling Service validates the requested date and time, and the Reservation Service uses database transactions to prevent conflicts and ensure that unsuccessful reschedulling attemps do not modify existing reservations.
+Automated tests have been added to verify reservation creation, authentication checks, scheduling failures, reservations retrieval and reservation rescheduling.
+Coordination through the Application API and the remaining security requirements will be implemented in the next development stages.

@@ -1,3 +1,5 @@
+from logging import exception
+
 from fastapi import FastAPI, HTTPException, Header, Depends
 import sqlite3, httpx
 from datetime import datetime, timedelta
@@ -170,5 +172,58 @@ def delete_reservation(reservation_id: int, current_user = Depends(get_current_u
         if cancel is False:
             raise HTTPException(status_code=409, detail="Reservation already cancelled")
         return {"message": "Reservation cancelled successfully"}
+    else:
+        raise HTTPException(status_code=403, detail="Access Denied")
+
+def reschedule_reservation(reservation_id, room_id, date, start_time):
+    con = sqlite3.connect(DB_PATH)
+    try:
+        cur = con.cursor()
+        cur.execute("BEGIN IMMEDIATE")
+        cur.execute(
+            "SELECT start_time FROM reservations WHERE room_id = ? AND date = ? AND STATUS = 'active' AND id != ?",
+            (room_id, date, reservation_id)
+        )
+        existing_reservations = cur.fetchall()
+        requested_start = datetime.strptime(start_time, "%H:%M")
+        requested_end = requested_start + timedelta(hours=1)
+        for existing in existing_reservations:
+            existing_start = datetime.strptime(existing[0], "%H:%M")
+            existing_end = existing_start + timedelta(hours=1)
+            if requested_start < existing_end and existing_start < requested_end:
+                con.rollback()
+                return False
+        cur.execute(
+                "UPDATE reservations SET room_id = ?, date = ?, start_time = ? WHERE id = ? AND status = 'active'",
+                (room_id, date, start_time, reservation_id)
+        )
+        changes = cur.rowcount
+        con.commit()
+        if changes == 1:
+            return True
+        return False
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
+
+@app.put("/reservations/{reservation_id}")
+def update_reservation(reservation_id: int, request: BookingRequest, current_user = Depends(get_current_user)):
+    reservation = get_reservation(reservation_id)
+    if reservation is None:
+        raise HTTPException(status_code=404, detail="Reservation not found")
+    user_id = int(current_user["sub"])
+    role = current_user["role"]
+    if user_id == reservation[1] or role == "admin":
+        if reservation[5] != "active":
+            raise HTTPException(status_code=409, detail="Reservation already cancelled")
+        new_schedule_time = check_schedule(request.date, request.start_time)
+        if new_schedule_time is False:
+            raise HTTPException(status_code=400, detail="Invalid booking schedule")
+        reschedule = reschedule_reservation(reservation_id, request.room_id, request.date, request.start_time)
+        if reschedule is False:
+            raise HTTPException(status_code=409, detail="Requested time slot is unavailable")
+        return {"message": "Reservation rescheduled successfully"}
     else:
         raise HTTPException(status_code=403, detail="Access Denied")
