@@ -88,6 +88,9 @@ To verify that the components are running, open the following URLs:
 
 Each endpoint should return {"status": "ok"}.
 
+Authenticated reservation requests require an Authorization header containing "Bearer" followed by the access token returned from POST /login. The SwaggerUI configuration
+does not correctly forward this header from its ordinary header input. For manual authenticated testing, PowerShell can be used to explicity include the Authorization header.
+
 Testing 
 The project uses pytest for automated testing.
 To run the test, execute the following command from the project root:
@@ -98,13 +101,21 @@ authentication tests verify successful login, incorect passwords and unknown use
 
 The Reservation Service tests verify successful reservation creation, prevention of duplicates and overlapping bookings, rejection of missing or invalid JWTs, invalid schedules and Scheduling Service unavailability.
 
-The reservation retrieval tests verify that users can access their own reservations, cannot access other users reservations and that administrators can access any reservation. They also verify the 401 and 404 responses. Currently all 18 automated tests pass.
+The reservation retrieval tests verify that users can access their own reservations, cannot access other users reservations and that administrators can access any reservation. They also verify the 401 and 404 responses.
 
 The reservation cancellation tests verify that users can cancel their own reservations, unauthorized users cannot canacel other users reservations and administrators also canacel any reservation.
-They also verify that cancelled reservations are marked as cancelled in the database, repeated cancellation attemps are rejected and invalid requests return HTTP errors. Currently all 20 automated tests pass.
+They also verify that cancelled reservations are marked as cancelled in the database, repeated cancellation attemps are rejected and invalid requests return HTTP errors.
 
 The reservation rescheduling tests verify successful rescheduling, ownership restrictions, administrator permissions, prevention of overlapping bookins and rejection of changes to cancelled reservations.
-They also verify invalid schedules, nonexistent reservations and JWT authentication. Currently all 22 automated tests pass.
+They also verify invalid schedules, nonexistent reservations and JWT authentication.
+
+The Application API coordination tests verify that reservation creation, retrieval, cancellation and rescheduling requests are correctly forwarded to the Reservation Service.
+They also verify that HTTP responses and error codes are preserved and that service unavailability is handled properly. Currently all 33 automated tests pass.
+
+Manual Integration Testing
+
+Manual end to end testing was performed with all three services running. Alice successfully logged in through the Application API, created a reservation, retrieve it, rescheduled it and cancelled it using HTTP requests through port 8000.
+A final GET request confirmed that the cancelled reservation remained in the database with its status set to "cancelled". This verified communication between the Application API, Reservation Service, Scheduling Service and database.
 
 Current Progress
 
@@ -119,8 +130,11 @@ The Scheduling Service provides a POST /validate endpoint and has automated test
 The Application API now supports user authentication using SQLite.
 The Authentication Storage contains three predefined accounts with Argon2 hashed passwords. Users can log in through the POST /login endpoint and receive a signed JWT with their user ID, role and expiration time.
 The Reservation Service now supports creating reservations through POST /reservations. Booking requests require JWT authentication and are validated by the Scheduling Service. The Reservation Service also checks for overlapping reservations and prevents double booking using database transactions.
-The Reservation Service also supports retrieval reservations through GET /reservations/. Authenticated users can retrieve their own reservations, while administrators can retrieve any reservation. The service enforces ownershop checks and returns appropiate HTTP status codes.
-The Reservation Service now supports cancelling reservations through DELETE /reservations/. Authenticated users can cancel their own reservations, while administrators can cancel reservations belonging to other users. Cancelled reservations are not deleted from the database, instead their status change from active to cancelled.
-The Reservation Service now supports rescheduling through PUT /reservations/. Users can reschedule their own reservations, while administrators can reschedule reservations belonging to other users. The Scheduling Service validates the requested date and time, and the Reservation Service uses database transactions to prevent conflicts and ensure that unsuccessful reschedulling attemps do not modify existing reservations.
+The Reservation Service also supports retrieval reservations through GET /reservations/{reservation_id}. Authenticated users can retrieve their own reservations, while administrators can retrieve any reservation. The service enforces ownershop checks and returns appropiate HTTP status codes.
+The Reservation Service now supports cancelling reservations through DELETE /reservations/{reservation_id}. Authenticated users can cancel their own reservations, while administrators can cancel reservations belonging to other users. Cancelled reservations are not deleted from the database, instead their status change from active to cancelled.
+The Reservation Service now supports rescheduling through PUT /reservations/{reservation_id}. Users can reschedule their own reservations, while administrators can reschedule reservations belonging to other users. The Scheduling Service validates the requested date and time, and the Reservation Service uses database transactions to prevent conflicts and ensure that unsuccessful reschedulling attemps do not modify existing reservations.
+The Application API now coordinates all reservation operations (POST, GET, PUT and DELETE) by forwarding HTTP requests to the Reservation Service, including the client's JWT Authorization Header.
+The Reservation Service remains responsible for reservation authorization, database access and conflict prevention. Automated coordination tests and manual end to end tests have been completed successfully.
 Automated tests have been added to verify reservation creation, authentication checks, scheduling failures, reservations retrieval and reservation rescheduling.
-Coordination through the Application API and the remaining security requirements will be implemented in the next development stages.
+
+The remaining development stages will focus on completing the mandatory security requirements, including introducing and investigating three vulnerabilities from the course catalog and one vulnerability involving component composition, documenting their security impact, implementing fixes and completing the required security testing and evidence.
