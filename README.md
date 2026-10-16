@@ -8,13 +8,13 @@ The main goal of this project is to implement a functional application while foc
 
 Architecture
 
-The application consists of three independent components that will communicate throught HTTP APIs using JSON.
+The application consists of three independent components that communicate throught HTTP APIs using JSON.
 
 	Application API (port 8000): Handles user authentication, user roles and coordinates requests between the services.
 	Reservation Service (port 8001): Manages reservations, checks room availability and verifies that users have permissions to access or modify reservations. It is the only service with direct access to the Reservation Database.
-	Scheduling Service (port 8002): Validates booking dates, times and duration based on predefined scheduling rules. It will use a separately installable helper package.
+	Scheduling Service (port 8002): Validates booking dates, times and duration based on predefined scheduling rules. It uses a separately installable helper package.
 
-The application will use SQLite for data storage and JWT tokens for authentication between requests.
+The application uses SQLite for data storage and JWT tokens for authentication between requests.
 
 More information about the system design and security decisions can be found in the docs/ folder.
 
@@ -110,31 +110,34 @@ The reservation rescheduling tests verify successful rescheduling, ownership res
 They also verify invalid schedules, nonexistent reservations and JWT authentication.
 
 The Application API coordination tests verify that reservation creation, retrieval, cancellation and rescheduling requests are correctly forwarded to the Reservation Service.
-They also verify that HTTP responses and error codes are preserved and that service unavailability is handled properly. Currently all 33 automated tests pass.
+They also verify that HTTP responses and error codes are preserved and that service unavailability is handled properly. Currently all 36 automated tests pass.
+
+The security regression tests verify that the four vulnerabilities investigated during development have been fixed. These tests cover missing authorization, improper input validation, SQL injection and the JWT trust-boundary vulnerability between the Application API and the Reservation Service.
 
 Manual Integration Testing
 
 Manual end to end testing was performed with all three services running. Alice successfully logged in through the Application API, created a reservation, retrieve it, rescheduled it and cancelled it using HTTP requests through port 8000.
 A final GET request confirmed that the cancelled reservation remained in the database with its status set to "cancelled". This verified communication between the Application API, Reservation Service, Scheduling Service and database.
 
-Current Progress
+Security Investigations
 
-The project is currently under development.
+During development, four vulnerabilities were intentionally introduced and investigated. Three vulnerabilities were selected from the course vulnerability catalog, while the fourth vulnerability resulted from the interaction between different components of the system.
 
-The three independent FastAPI components have been created and tested using their health check endpoints
+1. CWE-862 - Missing Authorization
+	An authorization check was missing in the Reservation Service, allowing unauthorized operation. The vulnerability was investigated and fixed by enforcing the required authorization check.
 
-The Scheduling Service now validates booking dates and times according to the predefined rules. It also uses a separately installable  helper package to calculate reservation ending times.
+2. CWE-20 - Improper Input Validation
+	The application did not properly validate certain inputs, allowing invalid input to be accepted. The vulnerability was investigated and fixed by improving input validation.
 
-The Scheduling Service provides a POST /validate endpoint and has automated tests using pytest.
+3. CWE-89 - SQL Injection
+	A SQL query did not handle user-controlled input securely, making it vulnerable to SQL injection. The vulnerability was investigated and fixed by using secure SQL query handling.
 
-The Application API now supports user authentication using SQLite.
-The Authentication Storage contains three predefined accounts with Argon2 hashed passwords. Users can log in through the POST /login endpoint and receive a signed JWT with their user ID, role and expiration time.
-The Reservation Service now supports creating reservations through POST /reservations. Booking requests require JWT authentication and are validated by the Scheduling Service. The Reservation Service also checks for overlapping reservations and prevents double booking using database transactions.
-The Reservation Service also supports retrieval reservations through GET /reservations/{reservation_id}. Authenticated users can retrieve their own reservations, while administrators can retrieve any reservation. The service enforces ownershop checks and returns appropiate HTTP status codes.
-The Reservation Service now supports cancelling reservations through DELETE /reservations/{reservation_id}. Authenticated users can cancel their own reservations, while administrators can cancel reservations belonging to other users. Cancelled reservations are not deleted from the database, instead their status change from active to cancelled.
-The Reservation Service now supports rescheduling through PUT /reservations/{reservation_id}. Users can reschedule their own reservations, while administrators can reschedule reservations belonging to other users. The Scheduling Service validates the requested date and time, and the Reservation Service uses database transactions to prevent conflicts and ensure that unsuccessful reschedulling attemps do not modify existing reservations.
-The Application API now coordinates all reservation operations (POST, GET, PUT and DELETE) by forwarding HTTP requests to the Reservation Service, including the client's JWT Authorization Header.
-The Reservation Service remains responsible for reservation authorization, database access and conflict prevention. Automated coordination tests and manual end to end tests have been completed successfully.
-Automated tests have been added to verify reservation creation, authentication checks, scheduling failures, reservations retrieval and reservation rescheduling.
+4. Component Composition - JWT Trust-Boundary Vulnerability
+	The Reservation Service was modified to skip JWT signature verification, while the Application API forwarded the client's Authorization header. This allowed an attacker to use a forged administrator token to perform an unauthorized operation. The vulnerability was fixed by restoring JWT signature verification in the Reservation Service.
 
-The remaining development stages will focus on completing the mandatory security requirements, including introducing and investigating three vulnerabilities from the course catalog and one vulnerability involving component composition, documenting their security impact, implementing fixes and completing the required security testing and evidence.
+All four vulnerabilities have been fixed and verified using automated security tests. The Git history preserves the vulnerable versions, the fixes and the test evidence for each investigation.
+
+Remaining Work
+
+The application functionality and the four vulnerability investigations have been completed.
+The remaining work includes implementing the Jenkins CI pipeline, reviewing the project documentation and preparing the final security report.
