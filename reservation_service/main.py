@@ -125,19 +125,14 @@ def read_reservation(reservation_id: int, current_user = Depends(get_current_use
     reservation = get_reservation(reservation_id)
     if reservation is None:
         raise HTTPException(status_code=404, detail="Reservation not found")
-    user_id = int(current_user["sub"])
-    role = current_user["role"]
-    if user_id == reservation[1] or role == "admin":
-        return {
+    return {
             "id": reservation[0],
             "user_id": reservation[1],
             "room_id": reservation[2],
             "date": reservation[3],
             "start_time": reservation[4],
             "status": reservation[5],
-        }
-    else:
-        raise HTTPException(status_code=403, detail="Access Denied")
+    }
 
 def cancel_reservation(reservation_id):
     con = sqlite3.connect(DB_PATH)
