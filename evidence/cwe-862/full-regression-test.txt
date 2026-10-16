@@ -1,0 +1,48 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- C:\Software Security\meeting-room-booking\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Software Security\meeting-room-booking
+plugins: anyio-4.15.1
+collecting ... collected 33 items
+
+tests/test_application_coordination.py::test_application_booking_coordination PASSED [  3%]
+tests/test_application_coordination.py::test_application_booking_conflict PASSED [  6%]
+tests/test_application_coordination.py::test_application_booking_service_unavailable PASSED [  9%]
+tests/test_application_coordination.py::test_application_get_coordination PASSED [ 12%]
+tests/test_application_coordination.py::test_application_get_forbidden PASSED [ 15%]
+tests/test_application_coordination.py::test_application_get_not_found PASSED [ 18%]
+tests/test_application_coordination.py::test_application_delete_coordination PASSED [ 21%]
+tests/test_application_coordination.py::test_application_delete_conflict PASSED [ 24%]
+tests/test_application_coordination.py::test_application_put_coordination PASSED [ 27%]
+tests/test_application_coordination.py::test_application_put_conflict PASSED [ 30%]
+tests/test_application_coordination.py::test_application_put_service_unavailable PASSED [ 33%]
+tests/test_authentication.py::test_valid_login PASSED                    [ 36%]
+tests/test_authentication.py::test_invalid_password PASSED               [ 39%]
+tests/test_authentication.py::test_unknown_user PASSED                   [ 42%]
+tests/test_reservation.py::test_create_reservation PASSED                [ 45%]
+tests/test_reservation.py::test_reservation_required_authentication PASSED [ 48%]
+tests/test_reservation.py::test_reservation_invalid_token PASSED         [ 51%]
+tests/test_reservation.py::test_invalid_schedule PASSED                  [ 54%]
+tests/test_reservation.py::test_scheduling_service_unavailable PASSED    [ 57%]
+tests/test_reservation.py::test_read_reservation_authorization PASSED    [ 60%]
+tests/test_reservation.py::test_read_reservation_requires_authentication PASSED [ 63%]
+tests/test_reservation.py::test_cancel_reservation_authorization PASSED  [ 66%]
+tests/test_reservation.py::test_cancel_reservation_requires_authentication PASSED [ 69%]
+tests/test_reservation.py::test_reschedule_reservation_authorization PASSED [ 72%]
+tests/test_reservation.py::test_reschedule_reservation_required_authentication PASSED [ 75%]
+tests/test_scheduling.py::test_weekday PASSED                            [ 78%]
+tests/test_scheduling.py::test_weekend PASSED                            [ 81%]
+tests/test_scheduling.py::test_working_hours PASSED                      [ 84%]
+tests/test_scheduling.py::test_working_hours_boundaries PASSED           [ 87%]
+tests/test_scheduling.py::test_complete_schedule PASSED                  [ 90%]
+tests/test_scheduling.py::test_helper_end_time PASSED                    [ 93%]
+tests/test_scheduling_api.py::test_valid_booking_request PASSED          [ 96%]
+tests/test_scheduling_api.py::test_invalid_date_request PASSED           [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Software Security\meeting-room-booking\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 33 passed, 1 warning in 1.01s ========================
