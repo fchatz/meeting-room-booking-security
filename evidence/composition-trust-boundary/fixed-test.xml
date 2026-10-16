@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.466" timestamp="2026-10-16T19:12:36.625744+02:00" hostname="Fotis"><testcase classname="tests.test_application_coordination" name="test_composition_trust_boundary" time="0.061" /></testsuite></testsuites>
