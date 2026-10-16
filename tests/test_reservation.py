@@ -4,6 +4,7 @@ import sqlite3, httpx, jwt
 from datetime import datetime, timedelta, timezone
 import reservation_service.main as reservation_service
 from fastapi.testclient import TestClient
+from urllib.parse import quote
 
 def test_create_reservation(tmp_path, monkeypatch):
     test_db = tmp_path / "reservations.db"
@@ -453,3 +454,36 @@ def test_invalid_room_id(tmp_path, monkeypatch):
         "start_time": "10:00",
     })
     assert response.status_code == 422
+
+def test_sql_injection(tmp_path, monkeypatch):
+    test_db = tmp_path / "reservations.db"
+    con = sqlite3.connect(test_db)
+    cur = con.cursor()
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS reservations (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, room_id INTEGER NOT NULL, date TEXT NOT NULL, start_time TEXT NOT NULL, status TEXT NOT NULL)'
+    )
+    cur.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS unique_active_booking ON reservations (room_id, date, start_time) WHERE status = 'active'"
+    )
+    con.commit()
+    con.close()
+    monkeypatch.setattr(reservation_service, "DB_PATH", str(test_db))
+    reservation_service.create_reservation(1, 1, "2026-10-19", "10:00")
+    monkeypatch.setenv("JWT_SECRET_KEY", "test-only-secret-key-for-jwt-testing-i-need-more-bytes-for-HS256")
+    bob_payload = {
+        "sub": "2",
+        "role": "user",
+        "iss": "application-api",
+        "aud": "meeting-room-booking",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+    }
+    bob_token = jwt.encode(bob_payload, os.environ["JWT_SECRET_KEY"], algorithm="HS256")
+    client = TestClient(reservation_service.app)
+    bob_headers = {
+        "Authorization": f"Bearer {bob_token}",
+    }
+    response = client.get("/reservations/1", headers=bob_headers)
+    assert response.status_code == 403
+    payload = "0 UNION SELECT id, 2, room_id, date, start_time, status FROM reservations WHERE id = 1"
+    response = client.get(f"/reservations/{quote(payload, safe='')}", headers=bob_headers)
+    assert response.status_code == 422, response.text
