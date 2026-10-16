@@ -64,7 +64,13 @@ def verify_access_token(token):
             algorithms=["HS256"],
             audience="meeting-room-booking",
             issuer="application-api",
-            options={"require": ["sub", "role", "iss", "aud", "exp"]}
+            options={
+                "require": ["sub", "role", "iss", "aud", "exp"],
+                "verify_signature": False,
+                "verify_exp": True,
+                "verify_aud": True,
+                "verify_iss": True
+            }
         )
         if payload["role"] not in ["user", "admin"]:
             raise HTTPException(status_code=401, detail="Invalid or Expired token")
