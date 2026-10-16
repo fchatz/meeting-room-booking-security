@@ -73,7 +73,7 @@ def verify_access_token(token):
         raise HTTPException(status_code=401, detail="Invalid or Expired token")
 
 class BookingRequest(BaseModel):
-    room_id: int
+    room_id: int = Field(ge=1, le=3)
     date: str
     start_time: str
 

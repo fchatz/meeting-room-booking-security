@@ -415,3 +415,41 @@ def test_reschedule_reservation_required_authentication(monkeypatch):
     })
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid or Expired token"
+
+def test_invalid_room_id(tmp_path, monkeypatch):
+    test_db = tmp_path / "reservations.db"
+    con = sqlite3.connect(test_db)
+    cur = con.cursor()
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS reservations (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, room_id INTEGER NOT NULL, date TEXT NOT NULL, start_time TEXT NOT NULL, status TEXT NOT NULL)'
+    )
+    cur.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS unique_active_booking ON reservations (room_id, date, start_time) WHERE status = 'active'"
+    )
+    con.commit()
+    con.close()
+    monkeypatch.setattr(reservation_service, "DB_PATH", str(test_db))
+    monkeypatch.setenv("JWT_SECRET_KEY", "test-only-secret-key-for-jwt-testing-i-need-more-bytes-for-HS256")
+    alice_payload = {
+        "sub": "1",
+        "role": "user",
+        "iss": "application-api",
+        "aud": "meeting-room-booking",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+    }
+    alice_token = jwt.encode(alice_payload, os.environ["JWT_SECRET_KEY"], algorithm="HS256")
+    monkeypatch.setattr(
+        reservation_service.httpx,
+        "post",
+        lambda *args, **kwargs: httpx.Response(200, json={"valid": True})
+    )
+    client = TestClient(reservation_service.app)
+    alice_headers = {
+        "Authorization": f"Bearer {alice_token}",
+    }
+    response = client.post("/reservations", headers=alice_headers, json={
+        "room_id": 999,
+        "date": "2026-10-19",
+        "start_time": "10:00",
+    })
+    assert response.status_code == 422
