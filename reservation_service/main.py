@@ -17,8 +17,7 @@ def get_reservation(reservation_id):
     con = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
     cur = con.cursor()
     cur.execute(
-        'SELECT id, user_id, room_id, date, start_time, status FROM reservations WHERE id = ?',
-        (reservation_id,)
+        f'SELECT id, user_id, room_id, date, start_time, status FROM reservations WHERE id = {reservation_id}',
     )
     reservation = cur.fetchone()
     con.close()
@@ -121,7 +120,7 @@ def check_schedule(date, start_time):
     return data.get("valid") is True
 
 @app.get("/reservations/{reservation_id}")
-def read_reservation(reservation_id: int, current_user = Depends(get_current_user)):
+def read_reservation(reservation_id: str, current_user = Depends(get_current_user)):
     reservation = get_reservation(reservation_id)
     if reservation is None:
         raise HTTPException(status_code=404, detail="Reservation not found")
