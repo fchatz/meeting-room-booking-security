@@ -31,5 +31,11 @@ pipeline {
                 bat '.venv\\Scripts\\bandit.exe -r application_api reservation_service scheduling_service packages/scheduling_helper/src --exit-zero'
             }
         }
+        stage('Dependency Analysis'){
+            steps {
+                bat '.venv\\Scripts\\python.exe -m pip install pip-audit==2.10.1'
+                bat '.venv\\Scripts\\python.exe -m pip_audit --local --skip-editable'
+            }
+        }
     }
 }
