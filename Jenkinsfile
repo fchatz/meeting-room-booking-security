@@ -1,11 +1,12 @@
 pipeline {
     agent any
-
     stages {
         stage('Environment Check') {
             steps {
                 bat 'py -3.14 --version'
                 bat 'git --version'
+                bat 'if exist reports rmdir /s /q reports'
+                bat 'mkdir reports'
             }
         }
         stage('Install Dependencies'){
@@ -22,7 +23,7 @@ pipeline {
         }
         stage('Automated Tests'){
             steps {
-                bat '.venv\\Scripts\\python.exe -m pytest tests/ -v'
+                bat '.venv\\Scripts\\python.exe -m pytest tests/ -v --junitxml=reports/pytest-results.xml'
             }
         }
         stage('Static Analysis'){
@@ -36,6 +37,11 @@ pipeline {
                 bat '.venv\\Scripts\\python.exe -m pip install pip-audit==2.10.1'
                 bat '.venv\\Scripts\\python.exe -m pip_audit --local --skip-editable'
             }
+        }
+    }
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: 'reports/pytest-results.xml'
         }
     }
 }
