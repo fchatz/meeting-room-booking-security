@@ -1,11 +1,7 @@
 import os, jwt, sqlite3
-from webbrowser import get
 import reservation_service.main as reservation_service
 from datetime import datetime, timedelta, timezone
-
 import httpx
-from urllib3.util import url
-
 import application_api.main as application_api
 from fastapi.testclient import TestClient
 
