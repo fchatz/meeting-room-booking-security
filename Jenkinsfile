@@ -25,5 +25,11 @@ pipeline {
                 bat '.venv\\Scripts\\python.exe -m pytest tests/ -v'
             }
         }
+        stage('Static Analysis'){
+            steps {
+                bat '.venv\\Scripts\\python.exe -m pip install bandit'
+                bat '.venv\\Scripts\\bandit.exe -r application_api reservation_service scheduling_service packages/scheduling_helper/src --exit-zero'
+            }
+        }
     }
 }
