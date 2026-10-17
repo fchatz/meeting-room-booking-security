@@ -14,5 +14,10 @@ pipeline {
                 bat '.\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt'
             }
         }
+        stage('Automated Tests'){
+            steps {
+                bat '.venv\\Scripts\\python.exe -m pytest tests/ -v'
+            }
+        }
     }
 }
