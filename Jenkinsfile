@@ -36,13 +36,14 @@ pipeline {
         stage('Dependency Analysis'){
             steps {
                 bat '.venv\\Scripts\\python.exe -m pip install pip-audit==2.10.1'
-                bat '.venv\\Scripts\\python.exe -m pip_audit --local --skip-editable'
+                bat '.venv\\Scripts\\python.exe -m pip_audit --local --skip-editable --format json --output reports/pip-audit-results.json'
             }
         }
     }
     post {
         always {
             junit allowEmptyResults: true, testResults: 'reports/pytest-results.xml'
+            archiveArtifacts artifacts: 'reports/*', allowEmptyArchive: true
         }
     }
 }
