@@ -28,8 +28,9 @@ pipeline {
         }
         stage('Static Analysis'){
             steps {
-                bat '.venv\\Scripts\\python.exe -m pip install bandit'
-                bat '.venv\\Scripts\\bandit.exe -r application_api reservation_service scheduling_service packages/scheduling_helper/src --exit-zero'
+                bat '.venv\\Scripts\\python.exe -m pip install bandit==1.9.4'
+                bat '.venv\\Scripts\\bandit.exe -r application_api reservation_service scheduling_service packages/scheduling_helper/src -f json -o reports/bandit-results.json --exit-zero'
+                bat '.venv\\Scripts\\bandit.exe -r application_api reservation_service scheduling_service packages/scheduling_helper/src -ll'
             }
         }
         stage('Dependency Analysis'){
