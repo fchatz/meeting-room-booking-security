@@ -15,7 +15,7 @@ Reservation Service (port 8001): Manages reservations, checks room availability 
 Scheduling Service (port 8002): Validates booking dates, times and duration based on predefined scheduling rules. It uses a separately installable helper package.
 
 The application uses SQLite for data storage and JWT tokens for authentication between requests.
-
+[access_control_matrix.md](docs/access_control_matrix.md)
 More information about the system design and security decisions can be found in the docs/ folder.
 
 **Technologies**
@@ -51,6 +51,14 @@ Initialize the Authentication Storage:
 This creates the SQLite database with three predefined user accounts:
 Alice and Bob as normal users and Admin as an administrator.
 Passwords are stored as Argon2 hashes.
+
+The following accounts are automatically created when initializing Authentication Storage.
+
+| Username | Password | Role |
+|----------|----------|------|
+| alice | AlicePass123! | user |
+| bob | BobPass123! | user |
+| admin | AdminPass123! | admin |
 
 Initialize the Reservation Database:
 
@@ -160,7 +168,3 @@ During development, four vulnerabilities were intentionally introduced and inves
 	The Reservation Service was modified to skip JWT signature verification, while the Application API forwarded the client's Authorization header. This allowed an attacker to use a forged administrator token to perform an unauthorized operation. The vulnerability was fixed by restoring JWT signature verification in the Reservation Service.
 
 All four vulnerabilities have been fixed and verified using automated security tests. The Git history preserves the vulnerable versions, the fixes and the test evidence for each investigation.
-
-**Remaining Work**
-
-The application functionality, all four vulnerability investigations and the Jenkins CI pipeline have been completed. The remaining work consists of reviewing the final project documentation and preparing the security report with references to the vulnerability investigations, Git commits, automated tests and Jenkins build evidence.

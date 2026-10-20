@@ -1,91 +1,36 @@
-User Level Access Control Matrix
+## Access-Control Matrix
 
+| Operation | Normal User | Administrator |
+|-----------|-------------|---------------|
+| Book a room | Conditional | Conditional |
+| Cancel own reservation | Conditional | Conditional |
+| Cancel another user's reservation | Denied | Conditional |
+| Reschedule own reservation | Conditional | Conditional |
+| Reschedule another user's reservation | Denied | Conditional |
+| View own reservation details | Allowed | Allowed |
+| View another user's reservation details | Denied | Allowed |
 
+**Conditional means the operation is allowed only when the conditions relevant to the specific operation are satisfied.**
 
-Operation						Normal User			Administrator
 
 
+## Conditions for each operation
 
+| Operation | Conditions |
+|-----------|-------------|
+| Book | The room must be available and the date/time must follow scheduling rules|
+| Cancel | The reservation must be active and the user must be its owner or an administrator|
+| Reschedule | The reservation must be active and the user must have permissions. Additionally the new slot must be valid and available |
 
 
-Book a room						Conditional			Conditional
 
+## Service Level Access Control Matrix
 
-
-Cancel own reservation					Conditional			Conditional
-
-
-
-Cancel another user's reservation			Denied				Conditional
-
-
-
-Reschedule own reservation				Conditional			Conditional
-
-
-
-Reschedule another user's reservation			Denied				Conditional
-
-
-
-View own reservation details				Allowed				Allowed
-
-
-
-View another user's reservation details			Denied				Allowed
-
-
-
-
-
-\*Conditional means the operation is allowed only when the conditions relevant to the specific operation are satisfied.
-
-
-
-Conditions for each operation
-
-
-
-Operation		Conditions
-
-
-
-Book			The room must be available and the date/time must follow scheduling rules.
-
-
-
-Cancel			The reservation must be active and the user must be its owner or an administrator.
-
-
-
-Reschedule		The reservation must be active and the user must have permissions. Additionally the new slot must be valid and available.
-
-
-
-
-
-
-
-
-
-Service Level Access Control Matrix
-
-
-
-Service				Authentication Storage			Reservation Database
-
-
-
-Application API			Read					-
-
-
-
-Reservation Service		-					Read/Write
-
-
-
-Scheduling Service		-					-
-
+| Service | Authentication Storage | Reservation Database |
+|-----------|------------------------|----------------------|
+| Application API | Read                   | -                    |
+| Reservation Service | -                      | Read/Write                    |
+| Scheduling Service | -                      | -                    |
 
 
 The Application API should only read records inside the Authentication Storage to authenticate a user and its role. Should not have permission to write because the application will use predefined seeded users.
@@ -94,39 +39,15 @@ The Reservation Service is the only component that have read/write permissions t
 
 Scheduling Service should not  have access to either Authentication Storage or Reservation Database, as its role is to validate based on predefined rules.
 
+| Source | Destination | Interaction                                                                                 |
+|-----------|-------------|---------------------------------------------------------------------------------------------|
+| Reservation Service | Scheduling Service | Requests scheduling validation                                                              |
+| Application API | Reservation Service | Forwards reservation requests with JWT                                                      |
+| Scheduling Service | Reservation Service | NOt used in the intended workflow                                                           |
+| User | Reservation Service | Direct requests are possible but protected operations require a valid JWT and authorization |
 
 
-Source				Destination			Permission
-
-
-
-Application API			Scheduling Service		Conditional
-
-
-
-Application API			Reservation Service		Conditional
-
-
-
-Scheduling Service		Reservation Service		Deny
-
-
-
-User				Reservation Service		Deny
-
-
-
-
-
-\*Conditional means the operation is allowed only when the authentication and the authorization have been established.
-
-
-
-
-
-Authorization Between Components
-
-
+## Authorization Between Components
 
 The Application API authenticates users based on information stored in Authentication Storage. The plan is to use JWT tokens and HTTPS to secure the communication between the components.
 
